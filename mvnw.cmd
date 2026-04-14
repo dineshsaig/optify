@@ -1,67 +1,32 @@
-@REM ----------------------------------------------------------------------------
-@REM Licensed to the Apache Software Foundation (ASF) under one
-@REM or more contributor license agreements.  See the NOTICE file
-@REM distributed with this work for additional information
-@REM regarding copyright ownership.  The ASF licenses this file
-@REM to you under the Apache License, Version 2.0 (the
-@REM "License"); you may not use this file except in compliance
-@REM with the License.  You may obtain a copy of the License at
-@REM
-@REM    https://www.apache.org/licenses/LICENSE-2.0
-@REM
-@REM Unless required by applicable law or agreed to in writing,
-@REM software distributed under the License is distributed on an
-@REM "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
-@REM KIND, either express or implied.  See the License for the
-@REM specific language governing permissions and limitations
-@REM under the License.
-@REM ----------------------------------------------------------------------------
+@echo off
+setlocal
 
-@REM ----------------------------------------------------------------------------
-@REM Maven Wrapper startup batch script
-@REM ----------------------------------------------------------------------------
+REM -- Base directory (strip trailing backslash to avoid quoting bugs)
+SET "BASEDIR=%~dp0"
+IF "%BASEDIR:~-1%"=="\" SET "BASEDIR=%BASEDIR:~0,-1%"
 
-@IF "%__MVNW_ARG0_NAME__%"=="" (SET "BASE_DIR=%~dp0") ELSE (SET "BASE_DIR=%__MVNW_ARG0_NAME__%")
+SET "WRAPPER_JAR=%BASEDIR%\.mvn\wrapper\maven-wrapper.jar"
 
-@SET MAVEN_PROJECTBASEDIR=%BASE_DIR%
-@SET WRAPPER_DIR=%MAVEN_PROJECTBASEDIR%.mvn\wrapper
-
-@SET WRAPPER_JAR=%WRAPPER_DIR%\maven-wrapper.jar
-@SET WRAPPER_LAUNCHER=org.apache.maven.wrapper.MavenWrapperMain
-
-@SET WRAPPER_URL=https://repo.maven.apache.org/maven2/org/apache/maven/wrapper/maven-wrapper/3.2.0/maven-wrapper-3.2.0.jar
-
-@IF NOT EXIST "%WRAPPER_JAR%" (
-  @ECHO Downloading Maven Wrapper...
-  @powershell -Command "&{"^
-    "$webclient = new-object System.Net.WebClient;"^
-    "if (-not ([string]::IsNullOrEmpty('%MVNW_USERNAME%') -and [string]::IsNullOrEmpty('%MVNW_PASSWORD%'))) {"^
-    "  $webclient.Credentials = new-object System.Net.NetworkCredential('%MVNW_USERNAME%', '%MVNW_PASSWORD%');"^
-    "}"^
-    "[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12;"^
-    "$webclient.DownloadFile('%WRAPPER_URL%', '%WRAPPER_JAR%')"^
-    "}"
-  IF "%MVNW_VERBOSE%"=="true" (
-    @ECHO Finished downloading %WRAPPER_JAR%
-  )
+REM -- Find java: prefer JAVA_HOME, fall back to whatever is on PATH
+IF DEFINED JAVA_HOME (
+    SET "JAVA_EXE=%JAVA_HOME%\bin\java.exe"
+) ELSE (
+    SET "JAVA_EXE=java"
 )
 
-@SET JAVA_EXE=%JAVA_HOME%\bin\java.exe
-
-@IF NOT EXIST "%JAVA_EXE%" (
-  @ECHO Error: JAVA_HOME is not set correctly or Java is not installed.
-  @ECHO Please install Java 17+ from https://adoptium.net
-  EXIT /B 1
+REM -- Download wrapper jar automatically if it is missing
+IF NOT EXIST "%WRAPPER_JAR%" (
+    ECHO Downloading Maven Wrapper JAR...
+    powershell -NoProfile -Command "(New-Object System.Net.WebClient).DownloadFile('https://repo.maven.apache.org/maven2/org/apache/maven/wrapper/maven-wrapper/3.2.0/maven-wrapper-3.2.0.jar', '%WRAPPER_JAR%')"
+    IF NOT EXIST "%WRAPPER_JAR%" (
+        ECHO.
+        ECHO ERROR: Could not download Maven Wrapper. Check your internet connection.
+        EXIT /B 1
+    )
+    ECHO Download complete.
 )
 
-@FOR /F "usebackq tokens=1,2 delims==" %%A IN ("%WRAPPER_DIR%\maven-wrapper.properties") DO (
-  @IF "%%A"=="distributionUrl" SET "DISTRIBUTION_URL=%%B"
-)
+REM -- Run Maven via the wrapper jar
+"%JAVA_EXE%" -classpath "%WRAPPER_JAR%" "-Dmaven.multiModuleProjectDirectory=%BASEDIR%" org.apache.maven.wrapper.MavenWrapperMain %*
 
-@SET MAVEN_HOME=%USERPROFILE%\.m2\wrapper\dists
-@"%JAVA_EXE%" ^
-  -classpath "%WRAPPER_JAR%" ^
-  "-Dmaven.multiModuleProjectDirectory=%MAVEN_PROJECTBASEDIR%" ^
-  "%WRAPPER_LAUNCHER%" ^
-  %MAVEN_CONFIG% ^
-  %*
+endlocal
