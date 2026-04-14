@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Optify — Job Dashboard</title>
+    <style>
+        /* ── Reset & base ───────────────────────────────────── */
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: #f5f7fa;
+            color: #1a1a2e;
+            min-height: 100vh;
+        }
+
+        /* ── Header ─────────────────────────────────────────── */
+        header {
+            background: #16213e;
+            color: #fff;
+            padding: 1rem 2rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+        header h1 { font-size: 1.5rem; letter-spacing: -0.02em; }
+        header .tagline { font-size: 0.85rem; opacity: 0.6; margin-left: auto; }
+
+        /* ── Toolbar ─────────────────────────────────────────── */
+        .toolbar {
+            background: #0f3460;
+            padding: 0.75rem 2rem;
+            display: flex;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        .toolbar form { display: flex; gap: 0.5rem; flex: 1; max-width: 480px; }
+        .toolbar input[type=text] {
+            flex: 1;
+            padding: 0.45rem 0.75rem;
+            border: none;
+            border-radius: 6px;
+            font-size: 0.9rem;
+        }
+        .btn {
+            padding: 0.45rem 1rem;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-decoration: none;
+            white-space: nowrap;
+        }
+        .btn-primary   { background: #e94560; color: #fff; }
+        .btn-secondary { background: rgba(255,255,255,0.15); color: #fff; }
+        .btn-refresh   { background: #4ecca3; color: #16213e; }
+        .btn:hover { opacity: 0.85; }
+
+        /* ── Stats bar ───────────────────────────────────────── */
+        .stats {
+            background: #fff;
+            border-bottom: 1px solid #e2e8f0;
+            padding: 0.6rem 2rem;
+            display: flex;
+            gap: 2rem;
+            font-size: 0.85rem;
+            color: #475569;
+        }
+        .stats strong { color: #1a1a2e; }
+
+        /* ── Flash message ───────────────────────────────────── */
+        .flash {
+            margin: 1rem 2rem 0;
+            padding: 0.75rem 1rem;
+            background: #d1fae5;
+            border: 1px solid #6ee7b7;
+            border-radius: 8px;
+            color: #065f46;
+            font-size: 0.9rem;
+        }
+
+        /* ── Main content ────────────────────────────────────── */
+        main { padding: 1.5rem 2rem; }
+
+        /* ── Table ───────────────────────────────────────────── */
+        .table-wrap { overflow-x: auto; }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: #fff;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+            font-size: 0.88rem;
+        }
+        thead th {
+            background: #16213e;
+            color: #94a3b8;
+            text-transform: uppercase;
+            font-size: 0.73rem;
+            letter-spacing: 0.06em;
+            padding: 0.75rem 1rem;
+            text-align: left;
+        }
+        tbody tr { border-bottom: 1px solid #f1f5f9; }
+        tbody tr:hover { background: #f8fafc; }
+        tbody tr.is-new { background: #f0fdf4; }
+        tbody tr.is-new:hover { background: #dcfce7; }
+        td { padding: 0.7rem 1rem; vertical-align: top; }
+
+        .badge-new {
+            display: inline-block;
+            background: #4ecca3;
+            color: #064e3b;
+            font-size: 0.68rem;
+            font-weight: 700;
+            padding: 0.15rem 0.45rem;
+            border-radius: 999px;
+            margin-left: 0.4rem;
+            vertical-align: middle;
+        }
+
+        .job-title a {
+            color: #0f3460;
+            font-weight: 600;
+            text-decoration: none;
+        }
+        .job-title a:hover { text-decoration: underline; }
+
+        .company { color: #475569; }
+        .location { color: #64748b; font-size: 0.83rem; }
+        .date { color: #94a3b8; font-size: 0.8rem; white-space: nowrap; }
+        .source { color: #94a3b8; font-size: 0.8rem; }
+
+        /* ── Empty state ─────────────────────────────────────── */
+        .empty {
+            text-align: center;
+            padding: 4rem 2rem;
+            color: #94a3b8;
+        }
+        .empty p { margin-bottom: 1rem; font-size: 1rem; }
+    </style>
+</head>
+<body>
+
+<!-- ── Header ─────────────────────────────────────────────────────────────── -->
+<header>
+    <h1>Optify</h1>
+    <span class="tagline">Automated job aggregator &bull; refreshes 4&times; daily</span>
+</header>
+
+<!-- ── Toolbar ────────────────────────────────────────────────────────────── -->
+<div class="toolbar">
+    <form method="get" action="/jobs">
+        <input type="text" name="q" placeholder="Search title, company, location…"
+               th:value="${query}" autocomplete="off"/>
+        <button type="submit" class="btn btn-primary">Search</button>
+        <a th:if="${query != null}" href="/jobs" class="btn btn-secondary">Clear</a>
+    </form>
+
+    <a href="/jobs?filter=new" class="btn btn-secondary"
+       th:classappend="${filter == 'new'} ? ' btn-primary' : ''">
+        New this cycle
+        <span th:if="${newCount > 0}" th:text="'(' + ${newCount} + ')'"></span>
+    </a>
+
+    <a href="/jobs" class="btn btn-secondary"
+       th:classappend="${filter == null and query == null} ? ' btn-primary' : ''">All jobs</a>
+
+    <a href="/refresh" class="btn btn-refresh">Refresh now</a>
+
+    <a href="/h2-console" target="_blank" class="btn btn-secondary">DB console</a>
+</div>
+
+<!-- ── Stats ──────────────────────────────────────────────────────────────── -->
+<div class="stats">
+    <span>Total stored: <strong th:text="${total}">0</strong></span>
+    <span>New this cycle: <strong th:text="${newCount}">0</strong></span>
+    <span th:if="${jobs != null}">Showing: <strong th:text="${#lists.size(jobs)}">0</strong></span>
+</div>
+
+<!-- ── Flash message ──────────────────────────────────────────────────────── -->
+<div th:if="${message}" class="flash" th:text="${message}"></div>
+
+<!-- ── Main table ─────────────────────────────────────────────────────────── -->
+<main>
+    <div class="table-wrap" th:if="${jobs != null and not #lists.isEmpty(jobs)}">
+        <table>
+            <thead>
+                <tr>
+                    <th>Title</th>
+                    <th>Company</th>
+                    <th>Location</th>
+                    <th>First Seen</th>
+                    <th>Source</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="job : ${jobs}"
+                    th:classappend="${job.new} ? 'is-new' : ''">
+                    <td class="job-title">
+                        <a th:href="${job.applyUrl}" target="_blank" rel="noopener"
+                           th:text="${job.title}">Job Title</a>
+                        <span th:if="${job.new}" class="badge-new">NEW</span>
+                    </td>
+                    <td class="company" th:text="${job.company}">Company</td>
+                    <td class="location" th:text="${job.location}">Location</td>
+                    <td class="date"
+                        th:text="${#temporals.format(job.firstSeenAt, 'MMM d, h:mm a')}">
+                        Date
+                    </td>
+                    <td class="source" th:text="${job.source}">Source</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Empty state -->
+    <div class="empty" th:if="${jobs == null or #lists.isEmpty(jobs)}">
+        <p th:if="${query != null}">
+            No jobs matched "<strong th:text="${query}"></strong>".
+        </p>
+        <p th:if="${filter == 'new' and query == null}">
+            No new jobs since the last refresh.
+        </p>
+        <p th:if="${filter == null and query == null}">
+            No jobs yet. Click <strong>Refresh now</strong> to fetch the first batch.
+        </p>
+        <a href="/refresh" class="btn btn-refresh">Refresh now</a>
+    </div>
+</main>
+
+</body>
+</html>
