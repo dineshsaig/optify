@@ -125,6 +125,17 @@
             vertical-align: middle;
         }
 
+        .badge-visa {
+            display: inline-block;
+            font-size: 0.68rem;
+            font-weight: 700;
+            padding: 0.15rem 0.45rem;
+            border-radius: 999px;
+            vertical-align: middle;
+        }
+        .badge-visa-high   { background: #dbeafe; color: #1e40af; }
+        .badge-visa-likely { background: #ede9fe; color: #5b21b6; }
+
         .job-title a {
             color: #0f3460;
             font-weight: 600;
@@ -169,6 +180,11 @@
         <span th:if="${newCount > 0}" th:text="'(' + ${newCount} + ')'"></span>
     </a>
 
+    <a href="/jobs?filter=sponsors" class="btn btn-secondary"
+       th:classappend="${filter == 'sponsors'} ? ' btn-primary' : ''">
+        Sponsors visa
+    </a>
+
     <a href="/jobs" class="btn btn-secondary"
        th:classappend="${filter == null and query == null} ? ' btn-primary' : ''">All jobs</a>
 
@@ -196,8 +212,8 @@
                     <th>Title</th>
                     <th>Company</th>
                     <th>Location</th>
+                    <th>Visa</th>
                     <th>First Seen</th>
-                    <th>Source</th>
                 </tr>
             </thead>
             <tbody>
@@ -210,11 +226,18 @@
                     </td>
                     <td class="company" th:text="${job.company}">Company</td>
                     <td class="location" th:text="${job.location}">Location</td>
+                    <td>
+                        <span th:if="${job.sponsorshipLikelihood.name() == 'HIGH'}"
+                              class="badge-visa badge-visa-high"
+                              title="Confirmed H1B sponsor (USCIS data)">H1B</span>
+                        <span th:if="${job.sponsorshipLikelihood.name() == 'LIKELY'}"
+                              class="badge-visa badge-visa-likely"
+                              title="Has sponsored in the past">Likely</span>
+                    </td>
                     <td class="date"
                         th:text="${#temporals.format(job.firstSeenAt, 'MMM d, h:mm a')}">
                         Date
                     </td>
-                    <td class="source" th:text="${job.source}">Source</td>
                 </tr>
             </tbody>
         </table>
@@ -227,6 +250,9 @@
         </p>
         <p th:if="${filter == 'new' and query == null}">
             No new jobs since the last refresh.
+        </p>
+        <p th:if="${filter == 'sponsors' and query == null}">
+            No known sponsors found yet. Try refreshing first.
         </p>
         <p th:if="${filter == null and query == null}">
             No jobs yet. Click <strong>Refresh now</strong> to fetch the first batch.

@@ -32,8 +32,16 @@ public class Job {
     @Enumerated(EnumType.STRING)
     private JobStatus status = JobStatus.ACTIVE;
 
+    // Likelihood this company sponsors H1B / work visas
+    @Enumerated(EnumType.STRING)
+    private SponsorshipLikelihood sponsorshipLikelihood = SponsorshipLikelihood.UNKNOWN;
+
     public enum JobStatus {
         ACTIVE, EXPIRED
+    }
+
+    public enum SponsorshipLikelihood {
+        HIGH, LIKELY, UNKNOWN
     }
 
     // ---- constructors ----
@@ -87,4 +95,9 @@ public class Job {
 
     public JobStatus getStatus() { return status; }
     public void setStatus(JobStatus status) { this.status = status; }
+
+    public SponsorshipLikelihood getSponsorshipLikelihood() { return sponsorshipLikelihood; }
+    public void setSponsorshipLikelihood(SponsorshipLikelihood sponsorshipLikelihood) {
+        this.sponsorshipLikelihood = sponsorshipLikelihood;
+    }
 }

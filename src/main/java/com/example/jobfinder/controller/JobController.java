@@ -1,6 +1,7 @@
 package com.example.jobfinder.controller;
 
 import com.example.jobfinder.model.Job;
+import com.example.jobfinder.model.Job.SponsorshipLikelihood;
 import com.example.jobfinder.repository.JobRepository;
 import com.example.jobfinder.service.JobRefreshService;
 import org.springframework.stereotype.Controller;
@@ -11,6 +12,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.List;
+import java.util.Map;
 
 @Controller
 public class JobController {
@@ -43,6 +45,10 @@ public class JobController {
         } else if ("new".equals(filter)) {
             jobs = repository.findByIsNewTrueOrderByFirstSeenAtDesc();
             model.addAttribute("filter", "new");
+        } else if ("sponsors".equals(filter)) {
+            jobs = repository.findBySponsorshipLikelihoodInOrderByFirstSeenAtDesc(
+                    List.of(SponsorshipLikelihood.HIGH, SponsorshipLikelihood.LIKELY));
+            model.addAttribute("filter", "sponsors");
         } else {
             jobs = repository.findAllByOrderByFirstSeenAtDesc();
         }

@@ -26,18 +26,21 @@ public class JobRefreshService {
     private final JobFetchService      fetcher;
     private final JobParseService      parser;
     private final JobScoringService    scorer;
+    private final SponsorshipService   sponsorship;
     private final JobRepository        repository;
 
     public JobRefreshService(List<CompanySource> sources,
                              JobFetchService fetcher,
                              JobParseService parser,
                              JobScoringService scorer,
+                             SponsorshipService sponsorship,
                              JobRepository repository) {
-        this.sources    = sources;
-        this.fetcher    = fetcher;
-        this.parser     = parser;
-        this.scorer     = scorer;
-        this.repository = repository;
+        this.sources     = sources;
+        this.fetcher     = fetcher;
+        this.parser      = parser;
+        this.scorer      = scorer;
+        this.sponsorship = sponsorship;
+        this.repository  = repository;
     }
 
     @Transactional
@@ -66,7 +69,8 @@ public class JobRefreshService {
 
                 Optional<Job> existing = repository.findByApplyUrl(job.getApplyUrl());
                 if (existing.isEmpty()) {
-                    // Brand-new job — save it
+                    // Brand-new job — tag sponsorship then save
+                    job.setSponsorshipLikelihood(sponsorship.assess(job.getCompany()));
                     repository.save(job);
                     newCount++;
                     log.debug("New job: {} @ {}", job.getTitle(), job.getCompany());
