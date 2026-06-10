@@ -1,0 +1,21 @@
+# Maven build output
+target/
+
+# H2 embedded database files
+data/
+
+# IDE
+.idea/
+*.iml
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Spring Boot logs
+*.log
+logs/
+
+# Environment
+.env
