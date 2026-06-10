@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Optify — Find Tech Jobs, Automatically</title>
+  <meta name="description" content="Optify aggregates tech jobs directly from company career pages. Search thousands of real openings, updated 4× daily. No spam, no reposts.">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" th:href="${siteUrl}">
+
+  <!-- Open Graph -->
+  <meta property="og:type"        content="website">
+  <meta property="og:site_name"   content="Optify">
+  <meta property="og:title"       content="Optify — Find Tech Jobs, Automatically">
+  <meta property="og:description" content="Aggregated tech jobs from top company career pages. Updated 4× daily, 100% free.">
+  <meta property="og:url"         th:content="${siteUrl}">
+  <meta property="og:image"       th:content="${siteUrl} + '/images/og-default.svg'">
+  <meta property="og:image:width"  content="1200">
+  <meta property="og:image:height" content="630">
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card"        content="summary_large_image">
+  <meta name="twitter:title"       content="Optify — Find Tech Jobs, Automatically">
+  <meta name="twitter:description" content="Aggregated tech jobs from top company career pages. Updated 4× daily.">
+  <meta name="twitter:image"       th:content="${siteUrl} + '/images/og-default.svg'">
+
+  <!-- Schema.org WebSite -->
+  <script type="application/ld+json" th:inline="javascript">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "name": "Optify",
+    "url": /*[[${siteUrl}]]*/ "https://optify.app",
+    "description": "Automated tech job aggregator — direct from company career pages.",
+    "potentialAction": {
+      "@type": "SearchAction",
+      "target": /*[[${siteUrl}]]*/ "https://optify.app" + "/jobs?q={search_term_string}",
+      "query-input": "required name=search_term_string"
+    }
+  }
+  </script>
+
+  <link rel="icon" href="/images/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+
+<!-- NAV -->
+<div th:replace="~{fragments/nav :: nav('home')}"></div>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="container">
+    <div class="hero-badge">
+      <span class="badge-dot"></span>
+      <span th:text="${newCount} + ' new jobs since last refresh'">New jobs today</span>
+    </div>
+    <h1 class="hero-title">
+      Find Your Next Role,<br>
+      <span class="hero-highlight">Automatically.</span>
+    </h1>
+    <p class="hero-subtitle">
+      Optify scrapes company career pages directly — no spam, no duplicate reposts.
+      Real jobs, updated four times daily.
+    </p>
+    <form class="hero-search" action="/jobs" method="get">
+      <input class="hero-search-input"
+             type="text" name="q"
+             placeholder="Search by title, company, or location…"
+             autocomplete="off" aria-label="Search jobs">
+      <button class="btn btn-red" type="submit">Search Jobs</button>
+    </form>
+    <div class="hero-stats">
+      <div class="stat">
+        <span class="stat-value" th:text="${total}">0</span>
+        <span class="stat-label">Jobs tracked</span>
+      </div>
+      <div class="stat-divider"></div>
+      <div class="stat">
+        <span class="stat-value">4×</span>
+        <span class="stat-label">Daily refresh</span>
+      </div>
+      <div class="stat-divider"></div>
+      <div class="stat">
+        <span class="stat-value">Free</span>
+        <span class="stat-label">Always</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section class="features">
+  <div class="container">
+    <div class="features-grid">
+      <div class="feature-card">
+        <span class="feature-icon">🎯</span>
+        <h3 class="feature-title">Direct from Source</h3>
+        <p class="feature-desc">
+          We scrape company career pages directly — no aggregator middlemen, no
+          outdated listings that expired weeks ago.
+        </p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">⚡</span>
+        <h3 class="feature-title">Always Fresh</h3>
+        <p class="feature-desc">
+          New jobs are fetched four times a day. Every listing you see was verified
+          active in the last six hours.
+        </p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">🚀</span>
+        <h3 class="feature-title">One-Click Apply</h3>
+        <p class="feature-desc">
+          Every listing links directly to the company's application page.
+          No registration, no tracking — just apply.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section class="how-it-works">
+  <div class="container">
+    <div class="section-header">
+      <span class="section-eyebrow">Simple by design</span>
+      <h2 class="section-title">How Optify Works</h2>
+    </div>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">01</div>
+        <h3 class="step-title">We Monitor</h3>
+        <p class="step-desc">
+          Optify watches the careers pages of top tech companies around the clock,
+          detecting new job postings the moment they appear.
+        </p>
+      </div>
+      <div class="step-connector">→</div>
+      <div class="step">
+        <div class="step-num">02</div>
+        <h3 class="step-title">We Aggregate</h3>
+        <p class="step-desc">
+          New postings are deduplicated, scored for relevance, and indexed with
+          structured metadata — title, company, location, and apply link.
+        </p>
+      </div>
+      <div class="step-connector">→</div>
+      <div class="step">
+        <div class="step-num">03</div>
+        <h3 class="step-title">You Apply</h3>
+        <p class="step-desc">
+          Browse or search the feed, filter to today's new listings, and click
+          straight through to the company's application form.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta-section">
+  <div class="container">
+    <div class="cta-card">
+      <h2>Ready to find your next job?</h2>
+      <p th:text="${total} + ' roles aggregated across top companies. New listings added 4× daily, 100% free.'">
+        Thousands of roles aggregated across top companies. New listings every few hours.
+      </p>
+      <a href="/jobs" class="btn btn-teal btn-lg">Browse All Jobs →</a>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<div th:replace="~{fragments/footer :: footer}"></div>
+
+</body>
+</html>

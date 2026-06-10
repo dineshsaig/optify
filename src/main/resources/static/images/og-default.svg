@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0d1733"/>
+      <stop offset="100%" style="stop-color:#0f3460"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="75%" cy="50%" r="50%">
+      <stop offset="0%" style="stop-color:#4ecca3;stop-opacity:0.12"/>
+      <stop offset="100%" style="stop-color:#4ecca3;stop-opacity:0"/>
+    </radialGradient>
+  </defs>
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  <rect width="1200" height="630" fill="url(#glow)"/>
+  <!-- Grid dots -->
+  <g opacity="0.04" fill="#ffffff">
+    <circle cx="100" cy="100" r="2"/><circle cx="200" cy="100" r="2"/><circle cx="300" cy="100" r="2"/>
+    <circle cx="100" cy="200" r="2"/><circle cx="200" cy="200" r="2"/><circle cx="300" cy="200" r="2"/>
+  </g>
+  <!-- Teal accent bar -->
+  <rect x="80" y="220" width="5" height="100" rx="3" fill="#4ecca3"/>
+  <!-- Logo -->
+  <text x="104" y="296" font-family="Arial, sans-serif" font-size="80" font-weight="900" fill="#ffffff" letter-spacing="-3">Optify</text>
+  <!-- Tagline -->
+  <text x="104" y="358" font-family="Arial, sans-serif" font-size="32" fill="rgba(255,255,255,0.55)" letter-spacing="-0.5">Find Your Next Role, Automatically.</text>
+  <!-- Stats row -->
+  <rect x="80" y="430" width="220" height="70" rx="10" fill="rgba(78,204,163,0.1)" stroke="rgba(78,204,163,0.2)" stroke-width="1"/>
+  <text x="104" y="460" font-family="Arial, sans-serif" font-size="22" font-weight="700" fill="#4ecca3">4× Daily</text>
+  <text x="104" y="484" font-family="Arial, sans-serif" font-size="14" fill="rgba(255,255,255,0.4)">UPDATES</text>
+  <rect x="320" y="430" width="220" height="70" rx="10" fill="rgba(78,204,163,0.1)" stroke="rgba(78,204,163,0.2)" stroke-width="1"/>
+  <text x="344" y="460" font-family="Arial, sans-serif" font-size="22" font-weight="700" fill="#4ecca3">Free</text>
+  <text x="344" y="484" font-family="Arial, sans-serif" font-size="14" fill="rgba(255,255,255,0.4)">ALWAYS</text>
+  <!-- Right side decoration -->
+  <circle cx="980" cy="315" r="180" fill="none" stroke="rgba(78,204,163,0.06)" stroke-width="40"/>
+  <circle cx="980" cy="315" r="100" fill="none" stroke="rgba(78,204,163,0.08)" stroke-width="2"/>
+  <text x="937" y="335" font-family="Arial, sans-serif" font-size="80" fill="rgba(255,255,255,0.08)">🔍</text>
+  <!-- URL bar -->
+  <text x="1120" y="590" font-family="Arial, sans-serif" font-size="18" fill="rgba(255,255,255,0.25)" text-anchor="end">optify.app</text>
+</svg>

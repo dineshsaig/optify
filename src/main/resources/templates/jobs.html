@@ -1,239 +1,209 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
-    <meta charset="UTF-8"/>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>Optify — Job Dashboard</title>
-    <style>
-        /* ── Reset & base ───────────────────────────────────── */
-        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            background: #f5f7fa;
-            color: #1a1a2e;
-            min-height: 100vh;
-        }
+  <!-- Dynamic title -->
+  <title th:text="${query != null} ? ('&quot;' + ${query} + '&quot; jobs — Optify') :
+                  (${filter == 'new'} ? 'New Jobs Today — Optify' : 'Browse Jobs — Optify')">
+    Browse Jobs — Optify
+  </title>
+  <meta name="description"
+        th:content="${query != null} ? ('Search results for &quot;' + ${query} + '&quot; on Optify — aggregated tech jobs from top companies.') :
+                    (${filter == 'new'} ? 'New tech jobs added today on Optify. Aggregated directly from company career pages.' : 'Browse ' + ${total} + ' tech jobs aggregated from top company career pages on Optify. Updated 4× daily.')">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical"
+        th:href="${query != null} ? (${siteUrl} + '/jobs?q=' + ${query}) :
+                 (${filter == 'new'} ? (${siteUrl} + '/jobs?filter=new') : (${siteUrl} + '/jobs'))">
 
-        /* ── Header ─────────────────────────────────────────── */
-        header {
-            background: #16213e;
-            color: #fff;
-            padding: 1rem 2rem;
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            flex-wrap: wrap;
-        }
-        header h1 { font-size: 1.5rem; letter-spacing: -0.02em; }
-        header .tagline { font-size: 0.85rem; opacity: 0.6; margin-left: auto; }
+  <!-- Open Graph -->
+  <meta property="og:type"        content="website">
+  <meta property="og:site_name"   content="Optify">
+  <meta property="og:title"
+        th:content="${query != null} ? ('&quot;' + ${query} + '&quot; Jobs — Optify') :
+                    (${filter == 'new'} ? 'New Jobs Today — Optify' : 'Browse Tech Jobs — Optify')">
+  <meta property="og:description"
+        th:content="${total} + ' tech jobs aggregated from top company career pages. Updated 4× daily, 100% free.'">
+  <meta property="og:url"
+        th:content="${query != null} ? (${siteUrl} + '/jobs?q=' + ${query}) : (${siteUrl} + '/jobs')">
+  <meta property="og:image" th:content="${siteUrl} + '/images/og-default.svg'">
 
-        /* ── Toolbar ─────────────────────────────────────────── */
-        .toolbar {
-            background: #0f3460;
-            padding: 0.75rem 2rem;
-            display: flex;
-            gap: 0.75rem;
-            flex-wrap: wrap;
-            align-items: center;
-        }
-        .toolbar form { display: flex; gap: 0.5rem; flex: 1; max-width: 480px; }
-        .toolbar input[type=text] {
-            flex: 1;
-            padding: 0.45rem 0.75rem;
-            border: none;
-            border-radius: 6px;
-            font-size: 0.9rem;
-        }
-        .btn {
-            padding: 0.45rem 1rem;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 0.85rem;
-            font-weight: 600;
-            text-decoration: none;
-            white-space: nowrap;
-        }
-        .btn-primary   { background: #e94560; color: #fff; }
-        .btn-secondary { background: rgba(255,255,255,0.15); color: #fff; }
-        .btn-refresh   { background: #4ecca3; color: #16213e; }
-        .btn:hover { opacity: 0.85; }
+  <!-- Twitter Card -->
+  <meta name="twitter:card"        content="summary_large_image">
+  <meta name="twitter:title"       th:content="${total} + ' Tech Jobs — Optify'">
+  <meta name="twitter:description" content="Aggregated directly from company career pages. Updated 4× daily.">
+  <meta name="twitter:image"       th:content="${siteUrl} + '/images/og-default.svg'">
 
-        /* ── Stats bar ───────────────────────────────────────── */
-        .stats {
-            background: #fff;
-            border-bottom: 1px solid #e2e8f0;
-            padding: 0.6rem 2rem;
-            display: flex;
-            gap: 2rem;
-            font-size: 0.85rem;
-            color: #475569;
-        }
-        .stats strong { color: #1a1a2e; }
-
-        /* ── Flash message ───────────────────────────────────── */
-        .flash {
-            margin: 1rem 2rem 0;
-            padding: 0.75rem 1rem;
-            background: #d1fae5;
-            border: 1px solid #6ee7b7;
-            border-radius: 8px;
-            color: #065f46;
-            font-size: 0.9rem;
-        }
-
-        /* ── Main content ────────────────────────────────────── */
-        main { padding: 1.5rem 2rem; }
-
-        /* ── Table ───────────────────────────────────────────── */
-        .table-wrap { overflow-x: auto; }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            background: #fff;
-            border-radius: 10px;
-            overflow: hidden;
-            box-shadow: 0 1px 4px rgba(0,0,0,0.08);
-            font-size: 0.88rem;
-        }
-        thead th {
-            background: #16213e;
-            color: #94a3b8;
-            text-transform: uppercase;
-            font-size: 0.73rem;
-            letter-spacing: 0.06em;
-            padding: 0.75rem 1rem;
-            text-align: left;
-        }
-        tbody tr { border-bottom: 1px solid #f1f5f9; }
-        tbody tr:hover { background: #f8fafc; }
-        tbody tr.is-new { background: #f0fdf4; }
-        tbody tr.is-new:hover { background: #dcfce7; }
-        td { padding: 0.7rem 1rem; vertical-align: top; }
-
-        .badge-new {
-            display: inline-block;
-            background: #4ecca3;
-            color: #064e3b;
-            font-size: 0.68rem;
-            font-weight: 700;
-            padding: 0.15rem 0.45rem;
-            border-radius: 999px;
-            margin-left: 0.4rem;
-            vertical-align: middle;
-        }
-
-        .job-title a {
-            color: #0f3460;
-            font-weight: 600;
-            text-decoration: none;
-        }
-        .job-title a:hover { text-decoration: underline; }
-
-        .company { color: #475569; }
-        .location { color: #64748b; font-size: 0.83rem; }
-        .date { color: #94a3b8; font-size: 0.8rem; white-space: nowrap; }
-        .source { color: #94a3b8; font-size: 0.8rem; }
-
-        /* ── Empty state ─────────────────────────────────────── */
-        .empty {
-            text-align: center;
-            padding: 4rem 2rem;
-            color: #94a3b8;
-        }
-        .empty p { margin-bottom: 1rem; font-size: 1rem; }
-    </style>
+  <link rel="icon" href="/images/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
 
-<!-- ── Header ─────────────────────────────────────────────────────────────── -->
-<header>
-    <h1>Optify</h1>
-    <span class="tagline">Automated job aggregator &bull; refreshes 4&times; daily</span>
-</header>
+<!-- NAV -->
+<div th:replace="~{fragments/nav :: nav('jobs')}"></div>
 
-<!-- ── Toolbar ────────────────────────────────────────────────────────────── -->
-<div class="toolbar">
-    <form method="get" action="/jobs">
-        <input type="text" name="q" placeholder="Search title, company, location…"
-               th:value="${query}" autocomplete="off"/>
-        <button type="submit" class="btn btn-primary">Search</button>
-        <a th:if="${query != null}" href="/jobs" class="btn btn-secondary">Clear</a>
-    </form>
-
-    <a href="/jobs?filter=new" class="btn btn-secondary"
-       th:classappend="${filter == 'new'} ? ' btn-primary' : ''">
-        New this cycle
-        <span th:if="${newCount > 0}" th:text="'(' + ${newCount} + ')'"></span>
-    </a>
-
-    <a href="/jobs" class="btn btn-secondary"
-       th:classappend="${filter == null and query == null} ? ' btn-primary' : ''">All jobs</a>
-
-    <a href="/refresh" class="btn btn-refresh">Refresh now</a>
-
-    <a href="/h2-console" target="_blank" class="btn btn-secondary">DB console</a>
+<!-- PAGE HEADER -->
+<div class="page-header">
+  <div class="container">
+    <h1 th:text="${query != null} ? ('Results for &quot;' + ${query} + '&quot;') :
+                 (${filter == 'new'} ? 'New Jobs Today' : 'Browse Jobs')">
+      Browse Jobs
+    </h1>
+    <p class="page-header-sub"
+       th:text="${total} + ' total jobs · updated 4× daily · direct from company career pages'">
+      Jobs tracked · direct from company career pages
+    </p>
+  </div>
 </div>
 
-<!-- ── Stats ──────────────────────────────────────────────────────────────── -->
-<div class="stats">
-    <span>Total stored: <strong th:text="${total}">0</strong></span>
-    <span>New this cycle: <strong th:text="${newCount}">0</strong></span>
-    <span th:if="${jobs != null}">Showing: <strong th:text="${#lists.size(jobs)}">0</strong></span>
+<!-- MAIN CONTENT -->
+<div class="jobs-layout">
+  <div class="container">
+
+    <!-- Flash message -->
+    <div th:if="${message}" class="flash flash-success">
+      ✓ <span th:text="${message}"></span>
+    </div>
+
+    <!-- TOOLBAR -->
+    <div class="jobs-toolbar">
+      <form class="jobs-search" action="/jobs" method="get">
+        <input class="jobs-search-input"
+               type="text" name="q"
+               th:value="${query}"
+               placeholder="Search title, company, location…"
+               autocomplete="off" aria-label="Search jobs">
+        <button class="btn btn-navy btn-sm" type="submit">Search</button>
+        <a th:if="${query != null}" href="/jobs" class="btn btn-outline btn-sm">✕ Clear</a>
+      </form>
+
+      <div class="filter-tabs">
+        <a href="/jobs"
+           th:classappend="${filter == null and query == null} ? ' active'"
+           class="filter-tab">
+          All Jobs
+          <span class="tab-count" th:text="${total}">0</span>
+        </a>
+        <a href="/jobs?filter=new"
+           th:classappend="${filter == 'new'} ? ' active'"
+           class="filter-tab">
+          ✦ New
+          <span class="tab-count" th:text="${newCount}">0</span>
+        </a>
+      </div>
+
+      <a href="/refresh" class="btn btn-teal btn-sm" style="margin-left:auto">
+        ↻ Refresh
+      </a>
+    </div>
+
+    <!-- META ROW -->
+    <div class="jobs-meta">
+      <span>
+        Showing <strong th:text="${jobs != null} ? ${#lists.size(jobs)} : 0">0</strong> jobs
+        <span th:if="${query != null}"> for &ldquo;<strong th:text="${query}"></strong>&rdquo;</span>
+        <span th:if="${filter == 'new'}"> · <span style="color:var(--c-teal-dk);font-weight:600;">✦ new this cycle</span></span>
+      </span>
+      <span th:if="${currentPage != null and totalPages != null and totalPages > 1}"
+            style="color:var(--c-subtle);font-size:0.82rem;">
+        Page <strong th:text="${currentPage + 1}">1</strong> of <strong th:text="${totalPages}">1</strong>
+      </span>
+    </div>
+
+    <!-- JOB CARDS -->
+    <div class="jobs-grid">
+      <!-- Filled state -->
+      <th:block th:if="${jobs != null and not #lists.isEmpty(jobs)}">
+        <article th:each="job : ${jobs}"
+                 class="job-card"
+                 th:classappend="${job.new} ? ' is-new'"
+                 th:onclick="'window.location.href=\'/jobs/' + ${job.id} + '\''">
+
+          <div class="job-card-top">
+            <div class="company-logo"
+                 th:text="${#strings.length(job.company) > 0} ? ${#strings.substring(job.company,0,2).toUpperCase()} : '?'">
+              CO
+            </div>
+            <div class="job-badges">
+              <span th:if="${job.new}" class="badge badge-new">✦ NEW</span>
+              <span class="badge badge-src" th:text="${job.source}">Source</span>
+            </div>
+          </div>
+
+          <div>
+            <div class="job-title" th:text="${job.title}">Software Engineer</div>
+            <div class="job-company" th:text="${job.company}">Acme Corp</div>
+          </div>
+
+          <div class="job-card-meta">
+            <div class="meta-row" th:if="${job.location != null and not #strings.isEmpty(job.location)}">
+              <span class="meta-icon">📍</span>
+              <span th:text="${job.location}">Location</span>
+            </div>
+            <div class="meta-row" th:if="${job.postedDate != null and not #strings.isEmpty(job.postedDate)}">
+              <span class="meta-icon">📅</span>
+              <span th:text="${job.postedDate}">Posted date</span>
+            </div>
+          </div>
+
+          <div class="job-card-footer">
+            <span class="job-date"
+                  th:text="${#temporals.format(job.firstSeenAt, 'MMM d, h:mm a')}">
+              Jan 1
+            </span>
+            <a th:href="'/jobs/' + ${job.id}"
+               class="btn btn-navy btn-sm"
+               onclick="event.stopPropagation()">
+              View →
+            </a>
+          </div>
+        </article>
+      </th:block>
+
+      <!-- Empty state -->
+      <div th:if="${jobs == null or #lists.isEmpty(jobs)}" class="empty-state">
+        <div class="empty-icon">🔍</div>
+        <h3 th:if="${query != null}">No results for &ldquo;<span th:text="${query}"></span>&rdquo;</h3>
+        <h3 th:if="${filter == 'new' and query == null}">No new jobs since last refresh</h3>
+        <h3 th:if="${filter == null and query == null}">No jobs yet</h3>
+        <p th:if="${query != null}">Try a broader search term or browse all jobs.</p>
+        <p th:if="${filter == 'new' and query == null}">Check back after the next refresh cycle.</p>
+        <p th:if="${filter == null and query == null}">Click Refresh to fetch the first batch.</p>
+        <div style="display:flex;gap:0.75rem;justify-content:center;flex-wrap:wrap;">
+          <a th:if="${query != null}" href="/jobs" class="btn btn-outline">Browse All Jobs</a>
+          <a href="/refresh" class="btn btn-teal">↻ Refresh Now</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- PAGINATION -->
+    <div th:if="${totalPages != null and totalPages > 1}" class="pagination">
+      <a th:href="@{/jobs(page=${currentPage - 1}, q=${query}, filter=${filter})}"
+         th:classappend="${currentPage == 0} ? ' disabled'"
+         class="page-btn">← Prev</a>
+
+      <th:block th:each="i : ${#numbers.sequence(0, totalPages - 1)}">
+        <a th:href="@{/jobs(page=${i}, q=${query}, filter=${filter})}"
+           th:text="${i + 1}"
+           th:classappend="${i == currentPage} ? ' active'"
+           class="page-btn">1</a>
+      </th:block>
+
+      <a th:href="@{/jobs(page=${currentPage + 1}, q=${query}, filter=${filter})}"
+         th:classappend="${currentPage == totalPages - 1} ? ' disabled'"
+         class="page-btn">Next →</a>
+    </div>
+
+  </div>
 </div>
 
-<!-- ── Flash message ──────────────────────────────────────────────────────── -->
-<div th:if="${message}" class="flash" th:text="${message}"></div>
+<!-- FOOTER -->
+<div th:replace="~{fragments/footer :: footer}"></div>
 
-<!-- ── Main table ─────────────────────────────────────────────────────────── -->
-<main>
-    <div class="table-wrap" th:if="${jobs != null and not #lists.isEmpty(jobs)}">
-        <table>
-            <thead>
-                <tr>
-                    <th>Title</th>
-                    <th>Company</th>
-                    <th>Location</th>
-                    <th>First Seen</th>
-                    <th>Source</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr th:each="job : ${jobs}"
-                    th:classappend="${job.new} ? 'is-new' : ''">
-                    <td class="job-title">
-                        <a th:href="${job.applyUrl}" target="_blank" rel="noopener"
-                           th:text="${job.title}">Job Title</a>
-                        <span th:if="${job.new}" class="badge-new">NEW</span>
-                    </td>
-                    <td class="company" th:text="${job.company}">Company</td>
-                    <td class="location" th:text="${job.location}">Location</td>
-                    <td class="date"
-                        th:text="${#temporals.format(job.firstSeenAt, 'MMM d, h:mm a')}">
-                        Date
-                    </td>
-                    <td class="source" th:text="${job.source}">Source</td>
-                </tr>
-            </tbody>
-        </table>
-    </div>
-
-    <!-- Empty state -->
-    <div class="empty" th:if="${jobs == null or #lists.isEmpty(jobs)}">
-        <p th:if="${query != null}">
-            No jobs matched "<strong th:text="${query}"></strong>".
-        </p>
-        <p th:if="${filter == 'new' and query == null}">
-            No new jobs since the last refresh.
-        </p>
-        <p th:if="${filter == null and query == null}">
-            No jobs yet. Click <strong>Refresh now</strong> to fetch the first batch.
-        </p>
-        <a href="/refresh" class="btn btn-refresh">Refresh now</a>
-    </div>
-</main>
-
+<script src="/js/main.js"></script>
 </body>
 </html>
